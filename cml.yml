@@ -1,0 +1,53 @@
+name: CML Pipeline
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions: write-all
+
+jobs:
+  train-and-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Train model
+        run: |
+          python train.py
+
+      - name: Create CML report file
+        run: |
+          echo "## Métriques du modèle" > report.md
+          echo "" >> report.md
+          cat metrics.json >> report.md
+
+      # 2a) Si c'est un PR (même dépôt), commenter la PR
+      - name: Comment PR with CML
+        if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx @dvcorg/cml comment create --pr report.md
+
+      # 2b) Si c'est un push, commenter le commit
+      - name: Comment commit with CML
+        if: ${{ github.event_name == 'push' }}
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx @dvcorg/cml comment create --commit-sha $GITHUB_SHA report.md
+
+      # 2c) Cas PR depuis un fork: on évite de commenter (pas de secrets)
+      - name: Skip comment for forked PR
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
+        run: echo "Forked PR detected: skipping comment (no token/secrets available)."
