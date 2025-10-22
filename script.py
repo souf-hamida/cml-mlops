@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 from imblearn.over_sampling import SMOTE
-<<<<<<< HEAD
+
 from PIL import Image 
-=======
+
 from PIL import Image
->>>>>>> af4e87c (first commit)
+
 
 ## skelarn -- preprocessing
 from sklearn.model_selection import train_test_split
@@ -123,11 +123,10 @@ def train_model(X_train, y_train, plot_name='', class_weight=None):
     
     global clf_name
 
-<<<<<<< HEAD
+
     clf = RandomForestClassifier(n_estimators=1000, max_depth=10, random_state=45, class_weight=class_weight)
-=======
     clf = RandomForestClassifier(n_estimators=500, max_depth=10, random_state=45, class_weight=class_weight)
->>>>>>> af4e87c (first commit)
+
     clf.fit(X_train, y_train)
     y_pred_train = clf.predict(X_train)
     y_pred_test = clf.predict(X_test_final)
